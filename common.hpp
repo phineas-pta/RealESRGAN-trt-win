@@ -13,45 +13,42 @@ using namespace nvinfer1;
 // TensorRT weight files have a simple space delimited format:
 // [type] [size] <data x size in hex>
 std::map<std::string, Weights> loadWeights(const std::string file) {
-    std::cout << "Loading weights: " << file << std::endl;
-    std::map<std::string, Weights> weightMap;
+	std::cout << "Loading weights: " << file << std::endl;
+	std::map<std::string, Weights> weightMap;
 
-    // Open weights file
-    std::ifstream input(file);
-    assert(input.is_open() && "Unable to load weight file. please check if the .wts file path is right!!!!!!");
+	// Open weights file
+	std::ifstream input(file);
+	assert(input.is_open() && "Unable to load weight file. please check if the .wts file path is right!!!!!!");
 
-    // Read number of weight blobs
-    int32_t count;
-    input >> count;
-    assert(count > 0 && "Invalid weight map file.");
+	// Read number of weight blobs
+	int32_t count;
+	input >> count;
+	assert(count > 0 && "Invalid weight map file.");
 
-    while (count--)
-    {
-        Weights wt{ DataType::kFLOAT, nullptr, 0 };
-        uint32_t size;
+	while (count--) {
+		Weights wt{ DataType::kFLOAT, nullptr, 0 };
+		uint32_t size;
 
-        // Read name and type of blob
-        std::string name;
-        input >> name >> std::dec >> size;
-        wt.type = DataType::kFLOAT;
+		// Read name and type of blob
+		std::string name;
+		input >> name >> std::dec >> size;
+		wt.type = DataType::kFLOAT;
 
-        // Load blob
-        uint32_t* val = reinterpret_cast<uint32_t*>(malloc(sizeof(val) * size));
-        for (uint32_t x = 0, y = size; x < y; ++x)
-        {
-            input >> std::hex >> val[x];
-        }
-        wt.values = val;
+		// Load blob
+		uint32_t* val = reinterpret_cast<uint32_t*>(malloc(sizeof(val) * size));
+		for (uint32_t x = 0, y = size; x < y; ++x) {
+			input >> std::hex >> val[x];
+		}
+		wt.values = val;
 
-        wt.count = size;
-        weightMap[name] = wt;
-    }
+		wt.count = size;
+		weightMap[name] = wt;
+	}
 
-    return weightMap;
+	return weightMap;
 }
 
-ITensor* residualDenseBlock(INetworkDefinition *network, std::map<std::string, Weights>& weightMap, ITensor* x, std::string lname)
-{
+ITensor* residualDenseBlock(INetworkDefinition *network, std::map<std::string, Weights>& weightMap, ITensor* x, std::string lname) {
 	IConvolutionLayer* conv_1 = network->addConvolutionNd(*x, 32, DimsHW{ 3, 3 }, weightMap[lname + ".conv1.weight"], weightMap[lname + ".conv1.bias"]);
 	conv_1->setStrideNd(DimsHW{ 1, 1 });
 	conv_1->setPaddingNd(DimsHW{ 1, 1 });
@@ -112,8 +109,7 @@ ITensor* residualDenseBlock(INetworkDefinition *network, std::map<std::string, W
 	return ew1->getOutput(0);
 }
 
-ITensor* RRDB(INetworkDefinition *network, std::map<std::string, Weights>& weightMap, ITensor* x, std::string lname)
-{
+ITensor* RRDB(INetworkDefinition *network, std::map<std::string, Weights>& weightMap, ITensor* x, std::string lname) {
 	ITensor* out = residualDenseBlock(network, weightMap, x, lname + ".rdb1");
 	out = residualDenseBlock(network, weightMap, out, lname + ".rdb2");
 	out = residualDenseBlock(network, weightMap, out, lname + ".rdb3");
@@ -132,6 +128,5 @@ ITensor* RRDB(INetworkDefinition *network, std::map<std::string, Weights>& weigh
 	IElementWiseLayer* ew1 = network->addElementWise(*scaled->getOutput(0), *x, ElementWiseOperation::kSUM);
 	return ew1->getOutput(0);
 }
-
 
 #endif

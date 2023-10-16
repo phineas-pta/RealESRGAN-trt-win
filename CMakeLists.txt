@@ -5,40 +5,28 @@ project(real-esrgan)
 add_definitions(-std=c++11)
 add_definitions(-DAPI_EXPORTS)
 option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
+
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
+set(OpenCV_DIR ███/OpenCV/build)
+set(CMAKE_CUDA_ARCHITECTURES ███)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Ofast -g -W4 -D_MWAITXINTRIN_H_INCLUDED")
 
+find_package(Threads)
 find_package(CUDA REQUIRED)
+find_package(OpenCV)
 
-if(WIN32)
 enable_language(CUDA)
-endif(WIN32)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
-# include and link dirs of cuda and tensorrt, you need adapt them if yours are different
-# cuda
-include_directories(/usr/local/cuda/include)
-link_directories(/usr/local/cuda/lib64)
-# tensorrt
-include_directories(/usr/include/x86_64-linux-gnu/)
-link_directories(/usr/lib/x86_64-linux-gnu/)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Ofast -g -Wfatal-errors -D_MWAITXINTRIN_H_INCLUDED")
-cuda_add_library(myplugins SHARED preprocess.cu postprocess.cu)
-target_link_libraries(myplugins nvinfer cudart)
-
-find_package(OpenCV)
+include_directories(${CUDA_INCLUDE_DIRS})
+link_directories(${CUDA_LIBRARY_DIRS})
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-cuda_add_executable(real-esrgan real-esrgan.cpp)
+cuda_add_executable(real-esrgan real-esrgan.cpp preprocess.cu postprocess.cu)
 
-target_link_libraries(real-esrgan nvinfer)
+target_link_libraries(real-esrgan nvinfer nvinfer_plugin)
 target_link_libraries(real-esrgan cudart)
-target_link_libraries(real-esrgan myplugins)
 target_link_libraries(real-esrgan ${OpenCV_LIBS})
-
-if(UNIX)
-add_definitions(-O2 -pthread)
-endif(UNIX)
-
-
+target_link_libraries(real-esrgan Threads::Threads)

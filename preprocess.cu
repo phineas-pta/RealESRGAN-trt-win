@@ -3,10 +3,7 @@
 using namespace std;
 
 // preprocess (NHWC->NCHW, BGR->RGB, [0, 255]->[0, 1](Normalize))
-__global__ void preprocess_kernel( float* output, uint8_t* input, 
-	const int batchSize, const int height, const int width, const int channel,
-	const int thread_count)
-{
+__global__ void preprocess_kernel(float* output, uint8_t* input, const int batchSize, const int height, const int width, const int channel, const int thread_count) {
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 	if (index >= thread_count) return;
 
@@ -22,8 +19,7 @@ __global__ void preprocess_kernel( float* output, uint8_t* input,
 	output[index] = input[g_idx] / 255.f;
 }
 
-void preprocess(float* output, uint8_t*input, int batchSize, int height, int width, int channel, cudaStream_t stream)
-{
+void preprocess(float* output, uint8_t*input, int batchSize, int height, int width, int channel, cudaStream_t stream) {
 	int thread_count = batchSize * height * width * channel;
 	int block = 512;
 	int grid = (thread_count - 1) / block + 1;
@@ -33,19 +29,17 @@ void preprocess(float* output, uint8_t*input, int batchSize, int height, int wid
 
 #include "preprocess.hpp"
 
-namespace nvinfer1
-{
-    int PreprocessPluginV2::enqueue(int batchSize, const void* const* inputs, void* const* outputs, void* workspace, cudaStream_t stream) noexcept
-    {
-        uint8_t* input = (uint8_t*)inputs[0];
-        float* output = (float*)outputs[0];
+namespace nvinfer1 {
+	int PreprocessPluginV2::enqueue(int batchSize, const void* const* inputs, void* const* outputs, void* workspace, cudaStream_t stream) noexcept {
+		uint8_t* input = (uint8_t*)inputs[0];
+		float* output = (float*)outputs[0];
 
-        const int H = mPreprocess.H;
-        const int W = mPreprocess.W;
-        const int C = mPreprocess.C;
+		const int H = mPreprocess.H;
+		const int W = mPreprocess.W;
+		const int C = mPreprocess.C;
 
-        preprocess(output, input, batchSize, H, W, C, stream);
+		preprocess(output, input, batchSize, H, W, C, stream);
 
-        return 0;
-    }
+		return 0;
+	}
 }
