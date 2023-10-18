@@ -48,12 +48,16 @@ inside, create those folders:
 
 ## 2️⃣ get models
 
-✅ get any of these following checkpoints:
+### original checkpoints
+
+from https://github.com/xinntao/Real-ESRGAN
+
+✅ supported models:
 - https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth
 - https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.1/RealESRNet_x4plus.pth
 - https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.1/RealESRGAN_x2plus.pth
 
-⛔ anime checkpoints throw errors with tensorrt (maybe need edit c++ code):
+⛔ anime checkpoints unsupported (need edit c++ code but idk how):
 - https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.2.4/RealESRGAN_x4plus_anime_6B.pth
 - https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-animevideov3.pth
 
@@ -66,6 +70,26 @@ convert pth to wts
 python gen_wts.py -i ckpt-pth -o wts-file -n RealESRGAN_x4plus
 ```
 change model name accordingly, possibly add `--fp16` for faster inference
+
+### custom checkpoints
+
+from https://github.com/ai-forever/Real-ESRGAN (formerly `sberbank-ai/Real-ESRGAN`)
+
+✅ supported models:
+- https://huggingface.co/ai-forever/Real-ESRGAN/blob/main/RealESRGAN_x4.pth
+- https://huggingface.co/ai-forever/Real-ESRGAN/blob/main/RealESRGAN_x2.pth
+
+⛔ unsupported (need edit c++ code but idk how):
+- https://huggingface.co/ai-forever/Real-ESRGAN/blob/main/RealESRGAN_x8.pth
+
+install repo:
+```
+pip install git+https://github.com/ai-forever/Real-ESRGAN.git
+```
+convert pth to wts
+```
+python gen_wts_bis.py -i ckpt-pth -o wts-file -n RealESRGAN_x4
+```
 
 ## 3️⃣ build
 
